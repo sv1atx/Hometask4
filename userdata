@@ -1,0 +1,23 @@
+#!/bin/bash
+
+apt update -y && apt upgrade -y
+
+PASSWORD_HASH=$(openssl passwd -5 1234)
+useradd -m -p "$PASSWORD_HASH" -s /bin/bash adminuser
+
+usermod -aG sudo adminuser
+
+useradd -m -s /bin/bash poweruser
+
+sed -i 's/^poweruser:[^:]*:/poweruser::/' /etc/passwd
+
+echo 'poweruser ALL=(ALL) NOPASSWD: /sbin/iptables' >> /etc/sudoers
+
+chmod 700 /home/adminuser
+setfacl -m u:poweruser:rx /home/adminuser
+
+ln -s /etc/mtab /home/poweruser/mtab
+
+chown -R poweruser:poweruser /home/poweruser
+
+echo "Setup complete"
